@@ -1,0 +1,45 @@
+#!/bin/bash
+set -euo pipefail
+
+# bcscene-setup-personas — Create a basecamp profile for each persona in personas.yaml.
+# Run once per machine. Idempotent: re-running is safe.
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+ROSTER="$REPO_ROOT/personas.yaml"
+
+if [ ! -f "$ROSTER" ]; then
+  echo "✗ $ROSTER not found"
+  echo "  Copy personas.example.yaml to personas.yaml and fill in your data."
+  exit 1
+fi
+
+if ! command -v yq >/dev/null 2>&1; then
+  echo "✗ yq not found. Install with: brew install yq"
+  exit 1
+fi
+
+ACCOUNT_ID=$(yq -r '.account_id' "$ROSTER")
+if [ -z "$ACCOUNT_ID" ] || [ "$ACCOUNT_ID" = "null" ] || [ "$ACCOUNT_ID" = "YOUR_ACCOUNT_ID" ]; then
+  echo "✗ account_id not set in $ROSTER"
+  exit 1
+fi
+
+PERSONAS=$(yq -r '.personas[].name' "$ROSTER")
+
+for name in $PERSONAS; do
+  if basecamp profile list --json -q 2>/dev/null | jq -e --arg n "$name" '.[] | select(.name == $n)' >/dev/null 2>&1; then
+    echo "✓ profile '$name' already exists — skipping"
+    continue
+  fi
+
+  echo "→ Creating profile '$name'..."
+  echo "  When the browser opens, log in as the persona for '$name'."
+  echo "  Press Return to continue."
+  read -r
+
+  basecamp profile create "$name" --account "$ACCOUNT_ID" --scope full
+  echo "✓ profile '$name' created"
+done
+
+echo ""
+echo "✓ All personas configured. Verify with: basecamp profile list"

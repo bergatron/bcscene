@@ -1,0 +1,101 @@
+# Copy this file to personas.yaml and fill in your real account/project IDs.
+# personas.yaml is gitignored — never commit it.
+#
+# Each persona maps to a basecamp profile (created via bcscene-setup-personas)
+# and an OAuth identity in your demo Basecamp account.
+#
+# The full Enormicom roster is included below. Trim it down to just the
+# personas you plan to use — every persona requires its own OAuth flow
+# during setup, so fewer means faster setup.
+
+account_id: "YOUR_ACCOUNT_ID"          # The Basecamp account these personas live in
+default_project_id: "YOUR_PROJECT_ID"  # Optional: project most scenes use
+
+personas:
+  - name: alex
+    display_name: "Alex Zhang"
+    email: alex@enormicom.com
+
+  - name: chris
+    display_name: "Chris Singh"
+    email: chris@enormicom.com
+
+  - name: christina
+    display_name: "Christina Miller"
+    email: christina@enormicom.com
+
+  - name: daniel
+    display_name: "Daniel Yates"
+    email: daniel@enormicom.com
+
+  - name: francisco
+    display_name: "Francisco Lopez"
+    email: francisco@enormicom.com
+
+  - name: geoff
+    display_name: "Geoff Collier"
+    email: geoff@enormicom.com
+
+  - name: harper
+    display_name: "Harper Harrison"
+    email: harper@enormicom.com
+
+  - name: janet
+    display_name: "Janet Montgomery"
+    email: janet@enormicom.com
+
+  - name: kayleigh
+    display_name: "Kayleigh Medina"
+    email: kayleigh@enormicom.com
+
+  - name: kurt
+    display_name: "Kurt Holloway"
+    email: kurt@enormicom.com
+
+  - name: leah
+    display_name: "Leah Bernstein"
+    email: leah@enormicom.com
+
+  - name: liza
+    display_name: "Liza Randall"
+    email: liza@enormicom.com
+
+  - name: luna
+    display_name: "Luna Rodriguez"
+    email: luna@enormicom.com
+
+  - name: marco
+    display_name: "Marco Antonio Luzón"
+    email: marco@enormicom.com
+
+  - name: matt
+    display_name: "Matt Benavides"
+    email: matt@enormicom.com
+
+  - name: matthew
+    display_name: "Matthew Rogerson"
+    email: matthew@enormicom.com
+
+  - name: melissa
+    display_name: "Melissa Vasquez"
+    email: melissa@enormicom.com
+
+  - name: neil
+    display_name: "Neil Erickson"
+    email: neil@enormicom.com
+
+  - name: sara
+    display_name: "Sara Fischer"
+    email: sara@enormicom.com
+
+  - name: sofia
+    display_name: "Sofía Castillo Rivera"
+    email: sofia@enormicom.com
+
+  - name: tamir
+    display_name: "Tamir Aviv"
+    email: tamar@enormicom.com
+
+  - name: vanessa
+    display_name: "Vanessa Nguyen"
+    email: vanessa@enormicom.com

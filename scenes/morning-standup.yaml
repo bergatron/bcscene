@@ -1,0 +1,34 @@
+# Example scene. Copy and customize for your own scenes.
+#
+# Replace YOUR_PROJECT_ID with a real project ID from your demo account.
+# Replace YOUR_TODOLIST_ID with a real todolist ID (find with: basecamp todolists --in <project>).
+# Replace persona names (liza/alex/jordan) with names from your personas.yaml.
+
+name: Morning standup
+description: Liza kicks off standup, Alex flags a blocker, Jordan owns the followup.
+
+steps:
+  - persona: liza
+    action: chat-post
+    args:
+      message: "Morning team! What's everyone working on today?"
+      project: "YOUR_PROJECT_ID"
+
+  - persona: alex
+    action: chat-post
+    args:
+      message: "Hey — I'm blocked on the API spec for the new auth flow. Need it before I can finish the integration."
+      project: "YOUR_PROJECT_ID"
+
+  - persona: jordan
+    action: chat-post
+    args:
+      message: "Oh shoot, that's on me. I'll get it to you by EOD."
+      project: "YOUR_PROJECT_ID"
+
+  - persona: jordan
+    action: todo-create
+    args:
+      title: "Write API spec for new auth flow"
+      project: "YOUR_PROJECT_ID"
+      list: "YOUR_TODOLIST_ID"
