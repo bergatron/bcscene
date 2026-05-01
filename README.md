@@ -17,6 +17,16 @@ Producing demo content. Specifically:
   three replies, a project with mixed contributors, etc.).
 - Keeping a demo Basecamp account looking lived-in over time.
 
+## Getting started
+
+**New to this?** Read **[GUIDE.md](GUIDE.md)** — a step-by-step walkthrough
+written for non-technical users. Covers everything from "I've never opened
+Terminal" to "I've run my first scene." About 45 minutes start to finish,
+mostly waiting on OAuth flows.
+
+**Already comfortable with the command line?** See **[SETUP.md](SETUP.md)**
+for the condensed reference.
+
 ## How it works
 
 bcscene is a thin runner on top of the basecamp CLI's native multi-profile
@@ -26,18 +36,6 @@ right profile.
 
 There is no credential juggling. The basecamp CLI handles tokens; you
 authorize each persona once via OAuth and bcscene just invokes the CLI.
-
-## Quick start
-
-1. Install prerequisites (see SETUP.md).
-2. Clone this repo and cd into it.
-3. Copy `personas.example.yaml` to `personas.yaml` and fill in your data.
-4. Run `bin/bcscene-setup-personas` to create a profile per persona.
-5. Edit `scenes/morning-standup.yaml` with your project ID and persona names.
-6. Run `bin/bcscene scenes/morning-standup.yaml --dry-run` to preview.
-7. Drop `--dry-run` to actually execute.
-
-Full setup walkthrough in SETUP.md.
 
 ## Writing scenes
 
