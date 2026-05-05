@@ -39,10 +39,12 @@ You'll need:
 - About 45 minutes of focused time the first time through. Most of
   that is logging in as each persona one-by-one (the boring part).
 - The login credentials for each persona you want to use. These are in
-  1Password under the demo account vault — ask if you don't know
-  where to find them.
+  1Password. When prompted for the persona, go into 1Password, search
+  for the person's first name, then click on the result titled
+  "Basecamp Demo."
 - A Mac. (Linux works too, but this guide assumes Mac.)
 - Claude Desktop installed (the chat app from Anthropic).
+- Basecamp CLI installed.
 
 You don't need to know git, Python, or what a YAML file is. We'll
 explain everything.
