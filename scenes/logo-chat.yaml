@@ -1,0 +1,27 @@
+name: New logo discussion
+description: Kurt floats a new logo idea in Enormicom HQ chat. Melissa and Leah agree. Daniel pushes back on bandwidth, suggests fall.
+
+steps:
+  - persona: kurt
+    action: chat-post
+    args:
+      message: "Hey team — been staring at our logo lately and I think it's looking pretty dated. What if we kicked off a project to redesign it? Something cleaner, more modern. I think it could give us a real lift heading into the back half of the year."
+      project: "23913601"
+
+  - persona: melissa
+    action: chat-post
+    args:
+      message: "Yes! 100% on board. Honestly I've been thinking the same thing — it feels stuck in like 2014. Happy to help shape the direction."
+      project: "23913601"
+
+  - persona: leah
+    action: chat-post
+    args:
+      message: "Agreed, Kurt. Time for a refresh. I can pull together some references and competitor logos to kick things off whenever we're ready."
+      project: "23913601"
+
+  - persona: daniel
+    action: chat-post
+    args:
+      message: "Love the idea in principle, but I don't think we've got the bandwidth right now — between the Q2 launch and everything in flight, a logo redesign is going to slip or stress people out. Maybe we revisit come fall when things settle? I'd rather do it well than rush it."
+      project: "23913601"

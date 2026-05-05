@@ -5,13 +5,32 @@ A friendly walkthrough for first-time users.
 ## What this does
 
 bcscene lets you make multiple Basecamp personas (Liza, Alex, Chris,
-etc.) appear to chat, post messages, and create todos in your demo
-account — without you manually logging in as each one. You write a
-"scene" describing what each persona does, run one command, and watch
-the activity unfold in Basecamp.
+etc.) chat, post messages, and create todos in your demo account —
+without you manually logging in as each one. You describe what you
+want in plain English (or write a "scene" file), and bcscene makes the
+activity happen in Basecamp.
 
 It's mainly used for producing demo content: videos, screenshots, and
 keeping the demo account looking lived-in.
+
+## How you'll actually use it
+
+The recommended day-to-day workflow uses **Claude Desktop's Code tab**
+(which runs Claude Code, an AI assistant that has access to your files
+and terminal). You'll open Claude Desktop, switch to the Code tab,
+launch a Claude Code session in the bcscene folder, and just describe
+the scene you want. Claude figures out which personas to use and runs
+the right commands.
+
+This is the modern bcscene workflow. Older bcscene used a similar
+setup but managed personas more painfully — the new version uses the
+official basecamp CLI's profile system, which is much cleaner.
+
+> **Important: don't use Claude Desktop's regular chat with the
+> Basecamp connector for this.** That posts everything as you (your
+> own account), not as personas. The Code tab is the one that runs
+> Claude Code, which uses bcscene's persona profiles. We'll show you
+> exactly which tab to click.
 
 ## Before you start
 
@@ -23,15 +42,16 @@ You'll need:
   1Password under the demo account vault — ask if you don't know
   where to find them.
 - A Mac. (Linux works too, but this guide assumes Mac.)
+- Claude Desktop installed (the chat app from Anthropic).
 
 You don't need to know git, Python, or what a YAML file is. We'll
 explain everything.
 
 ## A note on the Terminal
 
-Everything in this guide happens in an app called **Terminal** — it
-comes with macOS and lets you type commands instead of clicking. If
-you've never used it, that's fine. We'll tell you exactly what to type.
+Some setup steps happen in an app called **Terminal** — it comes with
+macOS and lets you type commands instead of clicking. If you've never
+used it, that's fine. We'll tell you exactly what to type.
 
 To open it: press `Cmd+Space`, type "Terminal", press Return. A window
 opens with a prompt that ends in `%` or `$`. That's where you type.
@@ -40,13 +60,14 @@ When this guide shows commands in boxes like this:
 
     cd ~/Code
 
-...you type or paste them at the prompt and press Return. The Terminal
-runs the command and shows you the result.
+...you type or paste them at the prompt and press Return.
 
-**Important:** When commands ask for a password (like the Mac password
-or a website password), the Terminal hides what you type. No dots, no
-asterisks, just a blank space. That's normal. Type the password and
-press Return.
+**When commands ask for a password** (the Mac password or a website
+password), the Terminal hides what you type. No dots, no asterisks,
+just a blank space. That's normal. Type the password and press Return.
+
+Once setup is done, you'll spend most of your time in Claude Desktop's
+Code tab — not Terminal.
 
 ---
 
@@ -127,8 +148,8 @@ You're now in the bcscene folder. Verify with:
 
     ls
 
-You should see files like `README.md`, `SETUP.md`, `bin`, `lib`,
-`scenes`, and `personas.example.yaml`.
+You should see files like `README.md`, `GUIDE.md`, `bin`, `lib`,
+`scenes`, `personas.example.yaml`, and `CLAUDE.md`.
 
 ---
 
@@ -144,7 +165,7 @@ Copy the template:
 
 This creates `personas.yaml` — your personal copy. The template stays
 unchanged. Your personal copy never gets uploaded to GitHub (it's
-listed in something called `.gitignore` that keeps it private).
+gitignored).
 
 ## Step 8: Edit your personas file
 
@@ -171,8 +192,8 @@ Use the arrow keys to move around. Edit these things:
 
 - The personas list — leave it alone for now, or delete personas you
   don't need. **Each persona requires a separate login during setup,
-  so fewer = faster setup.** Start with 3 to validate things work, then
-  add more later.
+  so fewer = faster setup.** A reasonable approach: start with 3 to
+  validate things work, then come back later and add the rest.
 
 Save with **Ctrl+O**, press Return, exit with **Ctrl+X**.
 
@@ -182,7 +203,8 @@ Save with **Ctrl+O**, press Return, exit with **Ctrl+X**.
 
 This is the longest part. For each persona, you'll log into Basecamp
 once and authorize bcscene. The basecamp CLI saves the login so you
-never have to do it again (until tokens expire after ~14 days of inactivity).
+never have to do it again (until tokens expire after a long period of
+inactivity).
 
 ## Step 9: Log out of Basecamp in your browser
 
@@ -213,6 +235,11 @@ When you press Return:
 Repeat until done. Don't rush — getting the wrong identity attached to
 a profile is annoying to undo.
 
+> **Need a break?** No problem. Press **Ctrl+C** to exit the script.
+> When you come back, just run `bin/bcscene-setup-personas` again — it
+> picks up where you left off. Already-authorized personas get skipped
+> automatically.
+
 ## Step 11: Verify
 
 Check that all personas got created:
@@ -235,54 +262,60 @@ your name. Repeat for the others.
 
 # Phase 4: Run your first scene
 
-## Step 12: Edit the example scene
+This is where you stop using Terminal and switch to Claude Desktop's
+Code tab. From here on, you describe scenes in plain English.
 
-The example scene is at `scenes/morning-standup.yaml`. It has
-placeholders that need real values:
+## Step 12: Open Claude Code in the bcscene folder
 
-    nano scenes/morning-standup.yaml
+1. Open **Claude Desktop**.
+2. Click the **Code** tab. (It's a separate tab from the regular chat.)
+3. The Code tab gives you a terminal-like input where you can type
+   commands. In it, type:
 
-Replace:
+       cd ~/Code/bcscene
 
-- `YOUR_PROJECT_ID` (appears 4 times) — your project ID, same one you
-  put in `personas.yaml`.
-- `YOUR_TODOLIST_ID` (appears once) — a todolist ID. To find one, exit
-  nano (Ctrl+X) and run:
+   Press Return.
 
-      basecamp -P liza todolists --in YOUR_PROJECT_ID
+4. Then type:
 
-  Replace `YOUR_PROJECT_ID` with your real project ID. It'll print a
-  list of todolists with IDs. Pick one, copy the ID, then re-open the
-  scene file and paste it in.
+       claude
 
-- The persona names (`liza`, `alex`, `jordan`) — change `jordan` to a
-  persona that exists in your `personas.yaml` (or change the others
-  too if liza/alex aren't in your file).
+   Press Return.
 
-Save and exit.
+This launches a Claude Code session that knows about your bcscene
+repo, your personas, and the scene format. It also reads a special
+`CLAUDE.md` file in the repo that explains how bcscene works — so you
+don't have to.
 
-## Step 13: Test without actually running it
+## Step 13: Describe a scene in plain English
 
-Before posting anything to Basecamp, do a "dry run" to preview what
-would happen:
+Try this for your first scene:
 
-    bin/bcscene scenes/morning-standup.yaml --dry-run
+> Have Liza post a quick standup message in our test project, then
+> have Alex respond saying he's blocked on the API spec, then have
+> Chris apologize and create a todo to write the spec.
 
-This prints out what bcscene would do without actually doing it. You
-should see four steps printed, each with `[dry-run] basecamp -P ...`
-in front of it, and "Scene complete" at the end.
+Claude will:
 
-If anything looks wrong (typos, wrong project ID, etc.), fix the scene
-file and dry-run again.
+1. Probably ask you which project to use (it doesn't assume — coworker
+   safety). Tell it the project ID.
+2. Probably ask which todolist for the todo. Find one with
+   `basecamp -P liza todolists --in <project_id>` in another Terminal
+   window, or ask Claude to find one for you.
+3. Generate the messages, dry-run the scene first to show you a
+   preview, and ask if you want to proceed.
+4. On your approval, run the scene live. Posts and todo appear in
+   Basecamp under the right personas.
 
-## Step 14: Run for real
+If you want Claude to skip the dry-run preview when you're confident,
+just say "skip the dry-run and run it directly." Claude follows your
+preference.
 
-When the dry run looks right:
+## Step 14: Watch it happen
 
-    bin/bcscene scenes/morning-standup.yaml
-
-The four steps will fire one by one with a 1-second pause between
-them. Open Basecamp in your browser to watch the activity appear.
+Open Basecamp in your browser, navigate to the project, and watch the
+chat fill in as Claude executes the scene. The whole thing takes 5-10
+seconds.
 
 Done! You've run your first scene.
 
@@ -290,28 +323,89 @@ Done! You've run your first scene.
 
 # What's next
 
-## Run the same scene again
+## Run more scenes
 
-Just run the same command — it'll repost everything. Useful if you're
-shooting a video and need a clean take.
+Just keep prompting Claude. Some things you can ask for:
 
-## Adjust pacing
+- **Replay a saved scene** — "Run the morning-standup scene file
+  again." (Claude finds it in the `scenes/` folder.)
+- **Variations** — "Run morning-standup again but make Alex's blocker
+  about a different topic."
+- **Original scenes** — "Have Liza, Sara, and Marco have a debate
+  about whether to use Postgres or MySQL. Make it last 6-8 messages."
+- **Ambient activity** — "Make 4 random personas post something
+  realistic about their day in our project."
 
-Add `--pause N` to slow things down (or speed them up):
+## Adjust pacing for video
 
-    bin/bcscene scenes/morning-standup.yaml --pause 5
+If you're recording a video and want viewers to register each action:
 
-This puts 5 seconds between each step. Good for video where you want
-viewers to register each action.
+> Run morning-standup with 5-second pauses between steps.
 
-## Write your own scenes
+## Save scenes for reuse
 
-Make a copy of `morning-standup.yaml`, give it a new name, and edit
-it. The format is fairly intuitive — read the example and you'll see
-the pattern.
+Ask Claude to save a scene to a file:
 
-If you want full details on what actions are available and how to
-write more complex scenes, see `SETUP.md` in the repo.
+> Make a scene where Liza onboards a new team member, three personas
+> welcome them, and someone creates a "review onboarding doc" todo.
+> Save it as scenes/onboarding.yaml so I can run it again later.
+
+Once saved, you can just say "run scenes/onboarding.yaml" anytime.
+
+---
+
+# Common needs
+
+## Adding a new persona later
+
+If a new persona gets added to the demo account and you want to use
+them in scenes:
+
+1. Open `personas.yaml` in nano:
+
+       nano personas.yaml
+
+2. Add the new persona at the bottom of the `personas:` list,
+   following the same format as existing entries:
+
+       - name: newperson
+         display_name: "New Person"
+         email: newperson@enormicom.com
+
+3. Save and exit (Ctrl+O, Return, Ctrl+X).
+
+4. Re-run the setup script:
+
+       bin/bcscene-setup-personas
+
+   It'll skip everyone you already authorized and just OAuth the new
+   persona.
+
+## Fixing a persona authorized as the wrong identity
+
+If `basecamp -P liza me` returns your name instead of Liza's (or any
+persona's profile is attached to the wrong account), you OAuth'd the
+wrong session. Fix it:
+
+1. Delete the broken profile:
+
+       basecamp profile delete liza
+
+2. Make sure you're logged out of Basecamp in your browser.
+
+3. Re-run the setup script:
+
+       bin/bcscene-setup-personas
+
+   It'll skip authorized personas and re-OAuth just `liza`. Pay
+   attention to the browser this time — make sure the right persona
+   is logging in.
+
+## Writing scenes by hand (instead of asking Claude)
+
+If you prefer to write scenes as YAML files yourself, see `SETUP.md`
+in the repo for the format and full action reference. Then run them
+with `bin/bcscene scenes/your-scene.yaml`.
 
 ---
 
@@ -319,7 +413,7 @@ write more complex scenes, see `SETUP.md` in the repo.
 
 ## "command not found"
 
-You typed a command that the Terminal doesn't recognize. Either:
+The Terminal doesn't recognize what you typed. Either:
 
 - You misspelled it. Check the spelling.
 - You're in the wrong folder. Run `pwd` to see where you are. If
@@ -327,37 +421,36 @@ You typed a command that the Terminal doesn't recognize. Either:
   `cd ~/Code/bcscene` to get back.
 - You skipped an install step. Go back to Phase 1.
 
-## "permission denied"
+## "permission denied" when running scripts
 
-The script doesn't have permission to run. Fix it with:
+Fix it with:
 
     chmod +x bin/bcscene bin/bcscene-setup-personas
 
 Then try again.
 
-## A persona authorization went to the wrong identity
-
-If `basecamp -P liza me` returns your name instead of Liza's, the
-OAuth flow caught your session. Fix:
-
-    basecamp profile delete liza
-
-Then re-run `bin/bcscene-setup-personas`. This time make absolutely
-sure you're logged out of Basecamp as yourself before the browser
-opens.
-
 ## A scene fails partway through
 
 Steps that already ran stay in Basecamp — bcscene doesn't undo
-anything. Just edit the scene to remove the steps that already worked,
-then re-run. Or clean up manually in Basecamp.
+anything. Either ask Claude to clean up (it can delete posts and
+todos), or clean up manually in Basecamp's UI. Then re-run the part
+that failed.
 
 ## "No todolist specified"
 
-Your scene's `todo-create` step is missing the `list` field. Add a
-real todolist ID to the scene's args. Find one with:
+A scene's `todo-create` step is missing the `list` field. Either ask
+Claude to fix it, or find a todolist ID with:
 
     basecamp -P <persona> todolists --in <project_id>
+
+...and add it to the scene file.
+
+## Claude Desktop's chat says "I can only post as you"
+
+You're in the wrong tab. The regular chat with the Basecamp connector
+posts via API as your account, which can't be different personas.
+Switch to the **Code tab** instead — that runs Claude Code, which uses
+bcscene's persona profiles.
 
 ## Everything is broken and I don't know why
 
