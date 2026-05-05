@@ -8,7 +8,7 @@ bcscene lets you make multiple Basecamp personas (Liza, Alex, Chris,
 etc.) chat, post messages, and create todos in your demo account —
 without you manually logging in as each one. You describe what you
 want in plain English (or write a "scene" file), and bcscene makes the
-activity happen in Basecamp.
+activity happen in Basecamp. 
 
 It's mainly used for producing demo content: videos, screenshots, and
 keeping the demo account looking lived-in.
