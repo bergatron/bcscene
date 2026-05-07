@@ -8,7 +8,7 @@ bcscene lets you make multiple Basecamp personas (Liza, Alex, Chris,
 etc.) chat, post messages, and create todos in your demo account —
 without you manually logging in as each one. You describe what you
 want in plain English (or write a "scene" file), and bcscene makes the
-activity happen in Basecamp. 
+activity happen in Basecamp.
 
 It's mainly used for producing demo content: videos, screenshots, and
 keeping the demo account looking lived-in.
@@ -49,6 +49,27 @@ You'll need:
 You don't need to know git, Python, or what a YAML file is. We'll
 explain everything.
 
+## Skip-ahead checklist (for faster setup)
+
+If you already have any of the prerequisites installed, you can skip
+parts of Phase 1. Run these checks in Terminal to see what you've
+already got:
+
+| Run this | If it prints a version, skip |
+|---|---|
+| `brew --version` | Step 1 |
+| `basecamp --version` | Step 2 |
+| `yq --version` | Step 3 |
+| `python3 -c "import yaml"` (silence = installed) | Step 4 |
+| `gh --version` | Step 5 |
+| `ls ~/Code/bcscene` (no errors = cloned) | Step 6 |
+
+If all six checks pass, **skip directly to Phase 2** (configuring
+personas).
+
+Each step in Phase 1 also has its own "skip if you already have this"
+note at the top.
+
 ## A note on the Terminal
 
 Some setup steps happen in an app called **Terminal** — it comes with
@@ -75,9 +96,12 @@ Code tab — not Terminal.
 
 # Phase 1: One-time setup
 
-Do this once on your Mac. It takes about 15 minutes.
+Do this once on your Mac. It takes about 15 minutes if you're starting
+from zero, less if you skip steps from the checklist above.
 
 ## Step 1: Install Homebrew
+
+> **Already have Homebrew?** Skip to Step 2. Verify with `brew --version`.
 
 Homebrew is a tool for installing other tools. To check if you have it:
 
@@ -95,6 +119,9 @@ commands — do whatever those say. Then verify with `brew --version` again.
 
 ## Step 2: Install the basecamp CLI
 
+> **Already have basecamp CLI?** Skip to Step 3. Verify with
+> `basecamp --version` (should be 0.7.2 or higher).
+
 The basecamp CLI is what bcscene uses to actually post things to
 Basecamp.
 
@@ -106,19 +133,28 @@ Verify:
 
 You should see `basecamp version 0.7.2` or higher.
 
-## Step 3: Install yq
+## Step 3: Install yq and jq
 
-yq reads the YAML files bcscene uses.
+> **Already have yq and jq?** Skip to Step 4. Verify with `yq --version`
+> and `jq --version`.
 
-    brew install yq
+These help bcscene read configuration files.
+
+    brew install yq jq
 
 ## Step 4: Install Python's YAML library
+
+> **Already have pyyaml?** Skip to Step 5. Verify by running
+> `python3 -c "import yaml"` — silence means it's installed.
 
 Python is already on your Mac, but it needs a little extra to read YAML.
 
     pip3 install pyyaml
 
 ## Step 5: Install the GitHub CLI
+
+> **Already have gh and authenticated?** Skip to Step 6. Verify with
+> `gh --version` and `gh auth status`.
 
 This makes downloading the bcscene repo easy.
 
@@ -132,6 +168,9 @@ Pick: GitHub.com → HTTPS → Yes (authenticate Git) → Login with web
 browser. Follow the prompts.
 
 ## Step 6: Download bcscene
+
+> **Already cloned the repo?** Skip to Phase 2. Verify with
+> `ls ~/Code/bcscene` — should show files like `bin`, `lib`, etc.
 
 Make a folder for code projects (if you don't already have one):
 
@@ -237,14 +276,54 @@ When you press Return:
 Repeat until done. Don't rush — getting the wrong identity attached to
 a profile is annoying to undo.
 
-> **Need a break?** No problem. Press **Ctrl+C** to exit the script.
-> When you come back, just run `bin/bcscene-setup-personas` again — it
-> picks up where you left off. Already-authorized personas get skipped
-> automatically.
+> **Need a break, or want to verify a persona before continuing?**
+>
+> Press **Ctrl+C** at any "Press Return to continue" prompt to exit
+> the script. You can then run any verification command (e.g.,
+> `basecamp profile list`, or `basecamp -P alex me` to check who a
+> profile is authenticated as).
+>
+> When you're ready to resume, just run `bin/bcscene-setup-personas`
+> again — it picks up where you left off. Already-authorized personas
+> get skipped automatically.
 
-## Step 11: Verify
+## Step 11 (recommended): Test before authorizing the rest
 
-Check that all personas got created:
+After authorizing your first 3 personas, take a break and verify
+everything works end-to-end before slogging through the remaining 19.
+This catches any setup issues early — and gives you a small win.
+
+1. Press **Ctrl+C** to exit the setup script (it'll resume later).
+2. Verify the 3 personas show up:
+
+       basecamp profile list
+
+3. **Open Claude Desktop.**
+4. Click the **Code** tab.
+5. In its terminal area, type:
+
+       cd ~/Code/bcscene
+       claude
+
+6. Once Claude Code loads, give it a plain-English prompt using the 3
+   personas you just authorized. For example, if your first 3 were
+   alex, chris, christina:
+
+   > "Have alex post a message asking what everyone's working on,
+   > then chris replies with something they're stuck on, then
+   > christina jumps in to help. Use our test project."
+
+7. Claude Code should ask for a project ID, then dry-run the scene,
+   then post for real on your approval. Watch your Basecamp project
+   to confirm.
+
+If that worked, great — return to Terminal and re-run
+`bin/bcscene-setup-personas` to authorize the rest. If something
+broke, fix it now while the setup is fresh in your mind.
+
+## Step 12: Verify everything
+
+Once all personas are authorized:
 
     basecamp profile list
 
@@ -258,21 +337,22 @@ secretly you), pick one and run:
 
 Replace `liza` with whichever persona you want to check. It'll print a
 name and email. The name and email should match that persona — not
-your name. Repeat for the others.
+your name. Repeat for any others you want to spot-check.
 
 ---
 
-# Phase 4: Run your first scene
+# Phase 4: Run scenes from Claude Desktop
 
-This is where you stop using Terminal and switch to Claude Desktop's
-Code tab. From here on, you describe scenes in plain English.
+This is the day-to-day workflow. From here on, you describe scenes in
+plain English in Claude Desktop's Code tab.
 
-## Step 12: Open Claude Code in the bcscene folder
+## Step 13: Open Claude Code in the bcscene folder
+
+> **Skip if you already did this in Step 11.** Same workflow.
 
 1. Open **Claude Desktop**.
-2. Click the **Code** tab. (It's a separate tab from the regular chat.)
-3. The Code tab gives you a terminal-like input where you can type
-   commands. In it, type:
+2. Click the **Code** tab.
+3. The Code tab gives you a terminal-like input. Type:
 
        cd ~/Code/bcscene
 
@@ -285,78 +365,57 @@ Code tab. From here on, you describe scenes in plain English.
    Press Return.
 
 This launches a Claude Code session that knows about your bcscene
-repo, your personas, and the scene format. It also reads a special
-`CLAUDE.md` file in the repo that explains how bcscene works — so you
-don't have to.
+repo, your personas, and the scene format. The repo includes a
+`CLAUDE.md` file that primes Claude Code on how bcscene works.
 
-## Step 13: Describe a scene in plain English
+## Step 14: Describe a scene in plain English
 
-Try this for your first scene:
+Examples:
 
-> Have Liza post a quick standup message in our test project, then
-> have Alex respond saying he's blocked on the API spec, then have
-> Chris apologize and create a todo to write the spec.
+- **Replay a saved scene:** "Run the morning-standup scene file in
+  scenes/."
+- **Original scenes:** "Have Liza, Sara, and Marco have a debate about
+  whether to use Postgres or MySQL. Make it last 6-8 messages."
+- **Ambient activity:** "Make 4 random personas post something
+  realistic about their day in our project."
+- **Variations:** "Run morning-standup again but make Alex's blocker
+  about a different topic."
 
-Claude will:
+Claude Code will:
 
-1. Probably ask you which project to use (it doesn't assume — coworker
-   safety). Tell it the project ID.
-2. Probably ask which todolist for the todo. Find one with
-   `basecamp -P liza todolists --in <project_id>` in another Terminal
-   window, or ask Claude to find one for you.
-3. Generate the messages, dry-run the scene first to show you a
-   preview, and ask if you want to proceed.
-4. On your approval, run the scene live. Posts and todo appear in
+1. Ask you which project to use if you didn't specify.
+2. Generate the scene, dry-run it for preview, ask for approval.
+3. On your approval, run the scene live. Posts and todos appear in
    Basecamp under the right personas.
 
-If you want Claude to skip the dry-run preview when you're confident,
-just say "skip the dry-run and run it directly." Claude follows your
-preference.
+If you're confident and want to skip the dry-run, just say "skip the
+dry-run and run it directly."
 
-## Step 14: Watch it happen
+## Step 15: Watch it happen
 
 Open Basecamp in your browser, navigate to the project, and watch the
 chat fill in as Claude executes the scene. The whole thing takes 5-10
 seconds.
 
-Done! You've run your first scene.
-
----
-
-# What's next
-
-## Run more scenes
-
-Just keep prompting Claude. Some things you can ask for:
-
-- **Replay a saved scene** — "Run the morning-standup scene file
-  again." (Claude finds it in the `scenes/` folder.)
-- **Variations** — "Run morning-standup again but make Alex's blocker
-  about a different topic."
-- **Original scenes** — "Have Liza, Sara, and Marco have a debate
-  about whether to use Postgres or MySQL. Make it last 6-8 messages."
-- **Ambient activity** — "Make 4 random personas post something
-  realistic about their day in our project."
-
-## Adjust pacing for video
-
-If you're recording a video and want viewers to register each action:
-
-> Run morning-standup with 5-second pauses between steps.
-
-## Save scenes for reuse
-
-Ask Claude to save a scene to a file:
-
-> Make a scene where Liza onboards a new team member, three personas
-> welcome them, and someone creates a "review onboarding doc" todo.
-> Save it as scenes/onboarding.yaml so I can run it again later.
-
-Once saved, you can just say "run scenes/onboarding.yaml" anytime.
+Done!
 
 ---
 
 # Common needs
+
+## Pacing for video
+
+If you're recording and want viewers to register each action:
+
+> "Run morning-standup with 5-second pauses between steps."
+
+## Saving scenes for reuse
+
+> "Make a scene where Liza onboards a new team member, three personas
+> welcome them, and someone creates a 'review onboarding doc' todo.
+> Save it as scenes/onboarding.yaml so I can run it again later."
+
+Once saved, you can just say "run scenes/onboarding.yaml" anytime.
 
 ## Adding a new persona later
 
@@ -403,6 +462,33 @@ wrong session. Fix it:
    attention to the browser this time — make sure the right persona
    is logging in.
 
+## Changing the default persona
+
+The "default" persona is who acts when you run `basecamp` commands
+*without* specifying `-P <name>`. bcscene itself doesn't care about
+the default — every scene step is explicit about who's acting. The
+default only matters for ad-hoc commands you type yourself (e.g.,
+`basecamp todolists --in 23913601`).
+
+To change the default:
+
+    basecamp profile set-default <name>
+
+To see the current default:
+
+    basecamp profile show
+
+> **Tip:** Many people register their *own* Basecamp identity as a
+> profile and set it as the default. That way, ad-hoc commands act as
+> you instead of as a fictional persona — useful for looking up
+> project IDs, todolist IDs, and so on.
+>
+> To register yourself, add yourself to `personas.yaml` like any other
+> persona (use your real name and email), run
+> `bin/bcscene-setup-personas` (it'll OAuth you), then:
+>
+>     basecamp profile set-default <yourname>
+
 ## Writing scenes by hand (instead of asking Claude)
 
 If you prefer to write scenes as YAML files yourself, see `SETUP.md`
@@ -418,10 +504,19 @@ with `bin/bcscene scenes/your-scene.yaml`.
 The Terminal doesn't recognize what you typed. Either:
 
 - You misspelled it. Check the spelling.
-- You're in the wrong folder. Run `pwd` to see where you are. If
-  you're not in `/Users/<yourname>/Code/bcscene`, run
-  `cd ~/Code/bcscene` to get back.
-- You skipped an install step. Go back to Phase 1.
+- You skipped an install step. Go back to Phase 1 and check the
+  skip-ahead checklist to figure out what's missing.
+
+## "No such file or directory" when running bcscene commands
+
+You're not in the bcscene folder. Terminal opens new windows in your
+home directory by default, so any time you start a fresh window you
+need to navigate back:
+
+    cd ~/Code/bcscene
+
+Confirm you're in the right place with `pwd` — it should print
+`/Users/<yourname>/Code/bcscene`.
 
 ## "permission denied" when running scripts
 

@@ -13,8 +13,22 @@ if [ ! -f "$ROSTER" ]; then
   exit 1
 fi
 
+if ! command -v basecamp >/dev/null 2>&1; then
+  echo "✗ basecamp CLI not found. Install with:"
+  echo "    brew install basecamp/tap/basecamp"
+  echo "  Then re-run this script."
+  exit 1
+fi
+
 if ! command -v yq >/dev/null 2>&1; then
-  echo "✗ yq not found. Install with: brew install yq"
+  echo "✗ yq not found. Install with:"
+  echo "    brew install yq"
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "✗ jq not found. Install with:"
+  echo "    brew install jq"
   exit 1
 fi
 
@@ -34,7 +48,7 @@ for name in $PERSONAS; do
 
   echo "→ Creating profile '$name'..."
   echo "  When the browser opens, log in as the persona for '$name'."
-  echo "  Press Return to continue."
+  echo "  Press Return to continue (or Ctrl+C to pause — re-run anytime to resume)."
   read -r
 
   basecamp profile create "$name" --account "$ACCOUNT_ID" --scope full
