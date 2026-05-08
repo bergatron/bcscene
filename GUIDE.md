@@ -252,7 +252,9 @@ inactivity).
 Important: log out of any Basecamp session you have open as yourself.
 The setup script will open browser windows to authorize each persona —
 if you're already logged in as yourself, it'll authorize you instead
-of the persona. Bad.
+of the persona. Bad. Find all personas in 1password. When prompted to 
+create a persona in terminal (alex will be first), just search for
+their first name in 1password and login as them.
 
 ## Step 10: Run the setup script
 
