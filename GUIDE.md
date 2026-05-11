@@ -265,15 +265,18 @@ For each persona in your file, the script will:
 1. Print "Press Return to continue."
 2. Wait for you.
 
+Before you press return:
+
+3. Log in with that persona's credentials (from 1Password).
+   
 When you press Return:
 
-3. The basecamp CLI opens a browser window.
-4. Log in with that persona's credentials (from 1Password).
+4. The basecamp CLI opens a browser window.
 5. Click "Authorize" when Basecamp asks.
 6. The CLI captures the login. You return to the Terminal.
 7. **Log that persona out of Basecamp** before pressing Return for the
    next one. Otherwise the next persona gets logged in as the previous
-   one. (To log out: avatar in top-right → Log out.)
+   one.
 
 Repeat until done. Don't rush — getting the wrong identity attached to
 a profile is annoying to undo.
