@@ -252,9 +252,7 @@ inactivity).
 Important: log out of any Basecamp session you have open as yourself.
 The setup script will open browser windows to authorize each persona —
 if you're already logged in as yourself, it'll authorize you instead
-of the persona. Bad. Find all personas in 1password. When prompted to 
-create a persona in terminal (alex will be first), just search for
-their first name in 1password and login as them.
+of the persona. Bad.
 
 ## Step 10: Run the setup script
 
@@ -265,18 +263,15 @@ For each persona in your file, the script will:
 1. Print "Press Return to continue."
 2. Wait for you.
 
-Before you press return:
-
-3. Log in with that persona's credentials (from 1Password).
-   
 When you press Return:
 
-4. The basecamp CLI opens a browser window.
+3. The basecamp CLI opens a browser window.
+4. Log in with that persona's credentials (from 1Password).
 5. Click "Authorize" when Basecamp asks.
 6. The CLI captures the login. You return to the Terminal.
 7. **Log that persona out of Basecamp** before pressing Return for the
    next one. Otherwise the next persona gets logged in as the previous
-   one.
+   one. (To log out: avatar in top-right → Log out.)
 
 Repeat until done. Don't rush — getting the wrong identity attached to
 a profile is annoying to undo.

@@ -105,6 +105,18 @@ messages (not paragraphs). Vary persona voices — not all crisp PMs,
 not all rambling engineers. The user will tell you if a persona has a
 particular voice they want; otherwise vary it naturally.
 
+## Known gotchas
+
+Before making non-trivial changes to Basecamp content (especially
+todos, mentions, HTML bodies, or chat posts in multi-room projects),
+**read `docs/MEMORY.md`** — it indexes a small set of basecamp-CLI and
+BC3 API gotchas that have burned past sessions. Each entry has a
+"How to apply" section with the correct invocation.
+
+When you discover a new gotcha worth remembering, add a feedback file
+to `docs/` and link it from `docs/MEMORY.md`. The format is documented
+at the bottom of that file.
+
 ## What to do if a CLI command fails
 
 The basecamp CLI returns structured JSON errors when you use `--json`.
