@@ -49,6 +49,46 @@ for clarification, when to dry-run.
 You can also write scene files by hand in YAML and run them with
 `bin/bcscene <scene-file>`. Both workflows work; pick what suits you.
 
+## Using bcscene with a different Basecamp account
+
+bcscene's default setup is tailored to 37signals' Enormicom demo
+account. If you want to use it against a different account, the
+easiest path is to **fork the repo** so you can customize it without
+affecting upstream.
+
+1. **Fork on GitHub.** Visit
+   [github.com/younotcooking/bcscene](https://github.com/younotcooking/bcscene)
+   and click the "Fork" button in the top right. GitHub creates a copy
+   under your username (e.g., `yourname/bcscene`).
+
+2. **Clone your fork** (not the original):
+
+   ```
+   gh repo clone yourname/bcscene
+   cd bcscene
+   ```
+
+3. **Use the blank persona template:**
+
+   ```
+   cp personas.blank.yaml personas.yaml
+   ```
+
+   Then edit `personas.yaml` to fill in your Basecamp account ID, a
+   project ID for testing, and your personas. (If you'd rather start
+   from the full Enormicom roster as a reference, use
+   `personas.example.yaml` instead.)
+
+4. **Follow [GUIDE.md](GUIDE.md) from Phase 2 onward** — Phase 1
+   (installing prerequisites) is the same, and Phase 3 (authorizing
+   personas) just authorizes whoever you listed instead of the
+   Enormicom cast.
+
+Your fork is independent. Edit scenes, personas, docs however you
+want — none of it affects upstream. If upstream gets new features
+later and you want them, you can `git pull` from upstream into your
+fork.
+
 ## Available scene actions
 
 A scene step uses one of these actions:
@@ -84,7 +124,10 @@ bcscene/
 │   └── loader.py                  # parses YAML
 ├── scenes/
 │   └── morning-standup.yaml       # example scene
-├── personas.example.yaml          # template roster
+├── docs/
+│   └── MEMORY.md                  # known gotchas with the basecamp CLI
+├── personas.example.yaml          # template roster (Enormicom)
+├── personas.blank.yaml            # template roster (for forks)
 ├── personas.yaml                  # your real roster (gitignored)
 ├── GUIDE.md                       # step-by-step walkthrough
 ├── SETUP.md                       # condensed setup reference
