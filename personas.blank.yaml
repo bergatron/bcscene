@@ -1,0 +1,20 @@
+# Copy this file to personas.yaml and fill in your data.
+# personas.yaml is gitignored — never commit it.
+#
+# This blank template is for forkers using bcscene with a different
+# Basecamp account (not the Enormicom demo account). If you ARE setting
+# up against Enormicom, use personas.example.yaml instead — it already
+# has the full 22-persona roster filled in.
+#
+# Each persona maps to a basecamp profile (created via bcscene-setup-personas)
+# and an OAuth identity in your Basecamp account.
+
+account_id: "YOUR_ACCOUNT_ID"          # Your Basecamp account ID (from the URL: https://3.basecamp.com/<account_id>/...)
+default_project_id: "YOUR_PROJECT_ID"  # A project ID you'll use for testing
+
+personas:
+  # Replace this example with your real personas.
+  # Add as many as you want — each one needs its own OAuth flow during setup.
+  - name: example
+    display_name: "Example Person"
+    email: example@yourcompany.com
