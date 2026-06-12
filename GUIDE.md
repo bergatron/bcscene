@@ -94,6 +94,50 @@ Code tab — not Terminal.
 
 ---
 
+# Forking for a different Basecamp account (optional)
+
+**Skip this section if you're using bcscene with 37signals' Enormicom
+demo account** — the default setup already points at that. Continue
+straight to Phase 1.
+
+If you want to use bcscene against a different Basecamp account, the
+easiest path is to **fork the repo** so you can customize it without
+affecting upstream. Do this *before* Phase 1, then continue with the
+rest of the guide using your fork instead of the original.
+
+1. **Fork on GitHub.** Visit
+   [github.com/younotcooking/bcscene](https://github.com/younotcooking/bcscene)
+   and click the "Fork" button in the top right. GitHub creates a copy
+   under your username (e.g., `yourname/bcscene`).
+
+2. **In Phase 1 Step 6, clone *your fork* instead of the original.**
+   When the guide tells you to run `gh repo clone younotcooking/bcscene`,
+   use your fork instead:
+
+       gh repo clone yourname/bcscene
+
+3. **In Phase 2 Step 7, use the blank persona template.** When the
+   guide tells you to copy `personas.example.yaml`, use the blank
+   template instead:
+
+       cp personas.blank.yaml personas.yaml
+
+   Then edit `personas.yaml` to fill in your Basecamp account ID, a
+   project ID for testing, and your personas. (If you'd rather start
+   from the full Enormicom roster as a reference, use
+   `personas.example.yaml` instead.)
+
+4. **Everything else is the same.** Phase 1 install steps, Phase 3
+   authorization, Phase 4 running scenes — all identical. Just
+   substitute your personas for the Enormicom ones in any prompts.
+
+Your fork is independent. Edit scenes, personas, docs however you
+want — none of it affects upstream. If upstream gets new features
+later and you want them, you can `git pull` from upstream into your
+fork.
+
+---
+
 # Phase 1: One-time setup
 
 Do this once on your Mac. It takes about 15 minutes if you're starting
@@ -421,14 +465,12 @@ Once you're comfortable, you can point bcscene at any project you want.
 Every Claude Code session for bcscene starts with these two commands
 in Claude Desktop's Code tab:
 
-    cd ~/Code/bcscene
-    claude
+```
+cd ~/Code/bcscene
+claude
+```
 
-> **Then your very first prompt must specify which Basecamp account
-> to work in.** Even if you've set a default profile, always name the
-> account explicitly — by name *and* ID number. This protects you
-> from accidentally posting to the 37signals account or a wrong
-> project. Example:
+> **Then your very first prompt must specify which Basecamp account to work in.** Even if you've set a default profile, always name the account explicitly — by name *and* ID number. This protects you from accidentally posting to the 37signals account or a wrong project. Example:
 >
 > > "We're working in the Enormicom Demo account (5185276)."
 
@@ -442,62 +484,30 @@ against expensive mistakes.
 
 ## Prompting tips
 
-- **Name the personas explicitly.** "Have alex, chris, and christina
-  discuss..." beats "have a few people discuss..." — Claude won't
-  guess which personas to use.
-- **Use Basecamp terminology for actions.** Say "to-dos," "subtasks,"
-  "card," "comments below," "boost," "schedule entry." Claude maps
-  these directly to CLI commands. Vague verbs like "post stuff" or
-  "make things happen" produce vague results.
-- **Cap each prompt at 4-5 tasks max.** Long prompts with 10+ actions
-  get partially lost in translation. Smaller prompts succeed at a
-  much higher rate.
-- **Build on prompts when one would get unwieldy.** Most prompts
-  should be one prompt — don't split things up just to split them.
-  But when you'd be cramming in 8+ actions, or stacking unrelated
-  work ("make this campfire thread *and* set up a card table for a
-  different feature"), break it up. Run the first piece, see the
-  result, then add to it. Claude tracks better and you can
-  course-correct mid-stream.
-- **Work *with* Claude, not at it.** If something isn't quite right,
-  say so — Claude will fix it. Don't try to predict every edge case
-  in your initial prompt; iteration is faster.
+- **Name the personas explicitly.** "Have alex, chris, and christina discuss..." beats "have a few people discuss..." — Claude won't guess which personas to use.
+- **Use Basecamp terminology for actions.** Say "to-dos," "subtasks," "card," "comments below," "boost," "schedule entry." Claude maps these directly to CLI commands. Vague verbs like "post stuff" or "make things happen" produce vague results.
+- **Cap each prompt at 4-5 tasks max.** Long prompts with 10+ actions get partially lost in translation. Smaller prompts succeed at a much higher rate.
+- **Build on prompts when one would get unwieldy.** Most prompts should be one prompt — don't split things up just to split them. But when you'd be cramming in 8+ actions, or stacking unrelated work ("make this campfire thread *and* set up a card table for a different feature"), break it up. Run the first piece, see the result, then add to it. Claude tracks better and you can course-correct mid-stream.
+- **Work *with* Claude, not at it.** If something isn't quite right, say so — Claude will fix it. Don't try to predict every edge case in your initial prompt; iteration is faster.
 
 ## Worked examples
 
 **Bad prompt** (overloaded, vague):
 
-> "Make a bunch of activity in our project — have everyone do stuff,
-> add todos, have people comment, make it look real."
+> "Make a bunch of activity in our project — have everyone do stuff, add todos, have people comment, make it look real."
 
 **Better prompt** (anchored, specific, well-scoped):
 
-> "We're in Enormicom Demo (5185276), Logo Redesign project
-> (23913601). Have liza post a message in the campfire asking for
-> logo references, have kurt and harper each reply with a sentence,
-> then add 3 to-dos assigned to kurt with deadlines next week — 'Pull
-> reference logos,' 'Sketch direction options,' 'Share with Liza for
-> feedback.'"
+> "We're in Enormicom Demo (5185276), Logo Redesign project (23913601). Have liza post a message in the campfire asking for logo references, have kurt and harper each reply with a sentence, then add 3 to-dos assigned to kurt with deadlines next week — 'Pull reference logos,' 'Sketch direction options,' 'Share with Liza for feedback.'"
 
 **A scene-style prompt** (good for video shoots, more structured):
 
-> "We're in Enormicom Demo (5185276), Marketing Site Refresh
-> (23913601). Run a 4-step scene with 3-second pauses: alex posts
-> 'Standup time, what's everyone on?' in the campfire, chris replies
-> they're stuck on the hero copy, christina says she'll help, then
-> christina creates a to-do 'Pair with chris on hero copy' assigned
-> to herself."
+> "We're in Enormicom Demo (5185276), Marketing Site Refresh (23913601). Run a 4-step scene with 3-second pauses: alex posts 'Standup time, what's everyone on?' in the campfire, chris replies they're stuck on the hero copy, christina says she'll help, then christina creates a to-do 'Pair with chris on hero copy' assigned to herself."
 
 ## When something goes wrong
 
-- **Claude accidentally cleared other info inside a message, to-do,
-  or card.** This happens occasionally. Just tell Claude — "you
-  removed the existing description, can you put it back?" — and it
-  will recognize the mistake and restore it.
-- **You ran a prompt and want to undo it.** Ask Claude to undo the
-  previous action. It can delete posts, todos, comments, and cards
-  it just created. Mention what you want undone specifically (e.g.,
-  "undo that last to-do, but leave the chat post").
+- **Claude accidentally cleared other info inside a message, to-do, or card.** This happens occasionally. Just tell Claude — "you removed the existing description, can you put it back?" — and it will recognize the mistake and restore it.
+- **You ran a prompt and want to undo it.** Ask Claude to undo the previous action. It can delete posts, todos, comments, and cards it just created. Mention what you want undone specifically (e.g., "undo that last to-do, but leave the chat post").
 
 The general rule: **anything you can describe, Claude can fix.** Talk
 to it.
@@ -514,9 +524,7 @@ If you're recording and want viewers to register each action:
 
 ## Saving scenes for reuse
 
-> "Make a scene where Liza onboards a new team member, three personas
-> welcome them, and someone creates a 'review onboarding doc' todo.
-> Save it as scenes/onboarding.yaml so I can run it again later."
+> "Make a scene where Liza onboards a new team member, three personas welcome them, and someone creates a 'review onboarding doc' todo. Save it as scenes/onboarding.yaml so I can run it again later."
 
 Once saved, you can just say "run scenes/onboarding.yaml" anytime.
 
