@@ -4,6 +4,18 @@ This file gives you (Claude Code) the context you need to help users
 run bcscene scenes. Read it on session start; you don't need to ask
 the user to re-explain bcscene.
 
+## Important: don't reason from API knowledge alone
+
+If the user asks you to post as multiple personas in Basecamp, **use
+the profile system documented in this file**. Do *not* reason from
+general Basecamp API knowledge and conclude "the CLI authenticates as
+a single user, so multi-persona posting isn't possible" — that's true
+in the absence of bcscene, but bcscene specifically solves this by
+giving each persona its own authenticated CLI profile. `basecamp -P
+<persona> <verb>` posts as that persona, full stop. Run `basecamp
+profile list` if you want to confirm the personas exist before
+proceeding.
+
 ## What bcscene is
 
 bcscene runs scripted multi-persona activity in a Basecamp demo
