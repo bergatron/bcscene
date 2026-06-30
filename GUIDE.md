@@ -659,7 +659,17 @@ You're in the wrong tab. The regular chat with the Basecamp connector
 posts via API as your account, which can't be different personas.
 Switch to the **Code tab** instead — that runs Claude Code, which uses
 bcscene's persona profiles.
+## Claude says "the CLI authenticates as a single user" or "no impersonation flag"
 
+Claude Code didn't read `CLAUDE.md` at session start and is reasoning
+from general Basecamp API knowledge. The fix: tell it bcscene is
+already set up, e.g., "We're using bcscene — the personas are
+pre-authorized as separate basecamp CLI profiles. Use `basecamp -P
+<persona>` to post as each one." Then re-issue your original prompt.
+
+To prevent this, always start a Claude Code session in the bcscene
+folder (`cd ~/Code/bcscene` *before* `claude`) and make your first
+prompt mention bcscene by name or reference the personas.yaml roster.
 ## Everything is broken and I don't know why
 
 Ping Chad — that's me. Or open an issue on the repo:

@@ -83,6 +83,24 @@ clarification rather than guessing** when:
 - **User explicitly says skip dry-run** → respect that. Don't
   re-prompt for confirmation if they've said go.
 
+## Permission allowlist (intentional)
+
+`.claude/settings.local.json` (personal, gitignored) pre-approves the
+scene-making commands so the user isn't clicking "allow" on every
+step: `basecamp`, `bin/bcscene`, and `python3` (used for batch
+fan-out loops). This is deliberate — the user opted into it to make
+running scenes smooth. Don't treat the absence of permission prompts
+as license to skip the dry-run policy above: auto-approval is about
+*not interrupting for routine commands*, not about skipping the
+content preview for invented activity. Still stop and ask at genuine
+forks (ambiguous instructions, a persona that isn't a project member,
+anything destructive) — that's a separate channel from permission
+prompts and the allowlist doesn't silence it.
+
+Commands outside the allowlist (file edits, `git push`, `rm`, etc.)
+still prompt by design. If the user wants to broaden or tighten this,
+edit the `permissions.allow` array in that file.
+
 ## Things that are not undoable
 
 Basecamp doesn't have undo. Once a chat is posted, a todo is created,
