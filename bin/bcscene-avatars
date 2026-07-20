@@ -27,6 +27,34 @@ EMOJI_FONT = "/System/Library/Fonts/Apple Color Emoji.ttc"
 STRIKE = 160  # Apple Color Emoji is bitmap; must use an exact strike size
 SIZE = 256
 
+# Illustrated avatars via DiceBear (api.dicebear.com, CC0/CC-BY styles —
+# see dicebear.com/licenses; internal QA fixture use). Personas listed here
+# get an illustrated person; anyone absent falls back to the emoji style
+# below. Format: (dicebear style, seed, background hex sans #).
+DICEBEAR = {
+    "sandy":    ("open-peeps", "Sandy Shoreman",  "ffe0b2"),
+    "patty":    ("lorelei",    "Patty Pagination", "d7e3fc"),
+    "vince":    ("open-peeps", "Vince Volume Loud","ffd6d6"),
+    "greta":    ("notionists", "Greta Gridline",   "d8f3dc"),
+    "alphabet": ("croodles",   "Alphabet Tester",  "e8d5ff"),
+    "bart":     ("adventurer", "Bartholomew FC",   "fff0c2"),
+    "dmitry":   ("lorelei",    "Dmitry Testov",    "ffe5ec"),
+    "haruto":   ("adventurer", "Haruto Sato",      "d0f4f7"),
+    "lola":     ("adventurer", "Lola Longfield",   "fde2ff"),
+    "max":      ("notionists", "Max Verylong",     "e2f7d5"),
+    "mira":     ("lorelei",    "Mira Ikhtibar",    "e0e0f8"),
+    "nono":     ("open-peeps", "Nono Muller",      "d5f5e3"),
+    "oscar":    ("notionists", "Oscar Overflow",   "f5e0cc"),
+    "pedro":    ("croodles",   "Pedro Picapiedra", "e8e8e8"),
+    "quinn":    ("croodles",   "Quinn OQuibble",   "ffe9f9"),
+    "tina":     ("adventurer", "Tina Tablesaw",    "fff3b0"),
+    "ulysses":  ("open-peeps", "Ulysses Underscore", "cce6ff"),
+    "wanda":    ("adventurer", "Wanda Maximoff",   "ffe0cc"),
+    "yuki":     ("adventurer", "Yuki Tanaka",      "e3f2fd"),
+    # "unicorn" deliberately keeps the 🦄 emoji avatar — a mixed roster is
+    # more realistic than a uniform one.
+}
+
 # emoji + (top color, bottom color) per persona, themed to their character
 STYLE = {
     "sandy":    ("🐚", ("#f6d365", "#fda085")),
@@ -57,6 +85,20 @@ def hex2rgb(h):
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
 def render(name):
+    out = os.path.join(REPO, "avatars", f"{name}.png")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    if name in DICEBEAR:
+        style, seed, bg = DICEBEAR[name]
+        url = (f"https://api.dicebear.com/9.x/{style}/png"
+               f"?seed={seed.replace(' ', '%20')}&size={SIZE}&backgroundColor={bg}")
+        r = subprocess.run(["curl", "-sS", "-f", url, "-o", out],
+                           capture_output=True, text=True)
+        if r.returncode == 0:
+            return out
+        print(f"{name}: dicebear fetch failed ({r.stderr.strip()[:80]}), using emoji fallback")
+    return render_emoji(name)
+
+def render_emoji(name):
     emoji, (top, bottom) = STYLE.get(name, DEFAULT_STYLE)
     t, b = hex2rgb(top), hex2rgb(bottom)
     img = Image.new("RGBA", (SIZE, SIZE))
