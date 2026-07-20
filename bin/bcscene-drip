@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+"""Recurring activity drip for the Bergatron Big Account. Designed for cron.
+
+Each run: 3-5 personas post a small, varied burst — a chat exchange in a
+rotating project, a couple of comments on recent recordings, a todo or two
+(sometimes assigned to the owner), an occasional boost. Rotation is seeded
+by the date, so consecutive runs hit different projects/personas/content
+without any state file. Volume per run is deliberately tiny (~8-14 writes):
+the goal is timeline freshness (bc3's 7-day window), not bulk.
+
+Cron example (Mon/Wed/Fri 10:07):
+  7 10 * * 1,3,5 /Users/<you>/Work/basecamp/bcscene/bin/bcscene-drip >> /tmp/bcscene-drip.log 2>&1
+"""
+import subprocess, json, sys, os, time, datetime, hashlib
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(REPO, "lib"))
+import yaml
+
+ROSTER = yaml.safe_load(open(os.path.join(REPO, "personas.yaml")))
+ACCOUNT = str(ROSTER["account_id"])
+PERSONAS = [p["name"] for p in ROSTER["personas"]]
+OWNER_ID = 52549353
+CHAT_PROJECT = str(ROSTER.get("default_project_id", ""))
+PAUSE = 1.2
+
+def day_seed():
+    return datetime.date.today().isoformat()
+
+def pick(seq, *keys):
+    h = int(hashlib.md5((day_seed() + ":" + ":".join(map(str, keys))).encode()).hexdigest(), 16)
+    return seq[h % len(seq)]
+
+def api(method, path, data=None, persona=None):
+    time.sleep(PAUSE)
+    args = ["basecamp"]
+    if persona:
+        args += ["-P", persona]
+    args += ["api", method, path, "--account", ACCOUNT]
+    if method in ("post", "put"):
+        args += ["-d", json.dumps(data or {})]
+    r = subprocess.run(args, capture_output=True, text=True)
+    try:
+        out = json.loads(r.stdout)
+        return out.get("data", True) if out.get("ok") else None
+    except Exception:
+        return None
+
+def cli(persona, *args):
+    time.sleep(PAUSE)
+    subprocess.run(["basecamp", "-P", persona, *args, "--json"],
+                   capture_output=True, text=True)
+
+CHAT_THREADS = [
+    ["Anyone else seeing the report numbers lag by a day?",
+     "Yes — known quirk, the sync runs overnight. Trust yesterday's column.",
+     "Good to know, thanks."],
+    ["Reminder: reviews due end of week.",
+     "Mine's in. Flagged two small things in the doc.",
+     "Same, nothing blocking."],
+    ["Coffee bet: who ships first this sprint?",
+     "Bold of you to assume it won't be Patty again.",
+     "Correct assumption. It will be me."],
+    ["Heads up, I'm moving the sync 30 minutes later tomorrow.",
+     "Works for me.", "👍 same."],
+    ["The new onboarding doc is live — worth a skim.",
+     "Nice, linked it from the team page.",
+     "Reading now, first impression: much clearer."],
+]
+COMMENTS = [
+    "Circling back — this is still on track for the milestone.",
+    "Picked this up today; will report by tomorrow.",
+    "Linked the related thread so context doesn't get lost.",
+    "Verified on staging, behaves as expected.",
+    "One more edge case to check, otherwise ready.",
+]
+TODOS = [
+    "Follow up on this week's open questions",
+    "Tidy the project docs",
+    "Check metrics after Monday's change",
+    "Prep talking points for the sync",
+]
+
+def main():
+    projects = []
+    page = 1
+    while page <= 12:
+        batch = api("get", f"projects.json?page={page}") or []
+        if not isinstance(batch, list) or not batch:
+            break
+        projects.extend(batch)
+        page += 1
+    if not projects:
+        print("no projects; aborting")
+        return
+
+    # 1. chat exchange in the chat project
+    thread = pick(CHAT_THREADS, "thread")
+    speakers = [pick(PERSONAS, "sp", i) for i in range(len(thread))]
+    for line, who in zip(thread, speakers):
+        cli(who, "chat", "post", line, "--in", CHAT_PROJECT)
+
+    # 2. comments on 2 rotating projects' newest recordings (todos)
+    for i in range(2):
+        p = pick(projects, "proj", i)
+        tsid = next((d["id"] for d in p["dock"] if d["name"] == "todoset" and d["enabled"]), None)
+        if not tsid:
+            continue
+        lists = api("get", f"buckets/{p['id']}/todosets/{tsid}/todolists.json") or []
+        if not isinstance(lists, list) or not lists:
+            continue
+        todos = api("get", f"buckets/{p['id']}/todolists/{lists[0]['id']}/todos.json") or []
+        if isinstance(todos, list) and todos:
+            api("post", f"buckets/{p['id']}/recordings/{todos[0]['id']}/comments.json",
+                {"content": f"<p>{pick(COMMENTS, 'cm', i)}</p>"}, persona=pick(PERSONAS, "cp", i))
+
+    # 3. one todo, every other day assigned to the owner
+    p = pick(projects, "todoproj")
+    tsid = next((d["id"] for d in p["dock"] if d["name"] == "todoset" and d["enabled"]), None)
+    if tsid:
+        lists = api("get", f"buckets/{p['id']}/todosets/{tsid}/todolists.json") or []
+        if isinstance(lists, list) and lists:
+            assignees = [OWNER_ID] if datetime.date.today().toordinal() % 2 == 0 else []
+            api("post", f"buckets/{p['id']}/todolists/{lists[0]['id']}/todos.json",
+                {"content": pick(TODOS, "todo"), "assignee_ids": assignees},
+                persona=pick(PERSONAS, "tp"))
+
+    print(f"{day_seed()} drip complete")
+
+if __name__ == "__main__":
+    main()

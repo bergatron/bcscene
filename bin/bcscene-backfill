@@ -1,0 +1,264 @@
+#!/usr/bin/env python3
+"""One-shot multi-author backfill for the Bergatron Big Account.
+
+Personas (rotating, deterministic) do three things:
+  comments   ~260 comments on the owner's recordings (todos, cards, docs,
+             messages) — each notifies the owner (creator subscription),
+             driving the unreads threshold (250/300) and reading as
+             team activity on existing content.
+  boosts     ~210 emoji boosts on the owner's recordings (boosts threshold 200).
+  spread     1-2 persona-authored items (message or todolist+todos) in each
+             realistic project that is still empty — timeline events across
+             100+ buckets (PROBE_MAX_BUCKETS) and no hollow projects.
+
+Throttled to ~1 request-start/second globally (per-machine penalty box);
+runs once — re-running adds more chatter (harmless, but not needed).
+
+Usage: bin/bcscene-backfill [--only comments,boosts,spread] [--dry-run]
+"""
+import subprocess, json, sys, os, threading, time, datetime, hashlib
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(REPO, "lib"))
+import yaml
+
+ROSTER = yaml.safe_load(open(os.path.join(REPO, "personas.yaml")))
+ACCOUNT = str(ROSTER["account_id"])
+PERSONAS = [p["name"] for p in ROSTER["personas"]]
+OWNER_ID = 52549353  # Michael Berger
+
+TARGET_COMMENTS = 260
+TARGET_BOOSTS = 210
+SPREAD_ASSIGN_OWNER_EVERY = 3  # every Nth spread todo assigned to owner
+
+DRY = "--dry-run" in sys.argv
+MIN_INTERVAL = 1.1
+LOG = os.path.join(REPO, "backfill.log")
+
+_tlock = threading.Lock()
+_next = [0.0]
+stats = {"writes": 0, "fails": 0}
+_slock = threading.Lock()
+
+def log(msg):
+    ts = datetime.datetime.now(datetime.timezone.utc).strftime("%H:%M:%SZ")
+    print(f"{ts} {msg}", flush=True)
+    with open(LOG, "a") as f:
+        f.write(f"{ts} {msg}\n")
+
+def throttle():
+    with _tlock:
+        now = time.monotonic()
+        start = max(now, _next[0])
+        _next[0] = start + MIN_INTERVAL
+    if start > now:
+        time.sleep(start - now)
+
+def api(method, path, data=None, persona=None, retries=10):
+    args = ["basecamp"]
+    if persona:
+        args += ["-P", persona]
+    args += ["api", method, path, "--account", ACCOUNT]
+    if method in ("post", "put"):
+        args += ["-d", json.dumps(data or {})]
+    delay = 2.0
+    for _ in range(retries):
+        throttle()
+        r = subprocess.run(args, capture_output=True, text=True)
+        try:
+            out = json.loads(r.stdout)
+        except Exception:
+            out = {"ok": False, "error": (r.stdout or r.stderr)[:150]}
+        if out.get("ok"):
+            return out.get("data", True)
+        err = str(out.get("error", ""))
+        if "rate" in err.lower() or "429" in err:
+            time.sleep(delay); delay = min(delay * 1.7, 90); continue
+        log(f"ERR {persona or 'owner'} {method} {path}: {err[:120]}")
+        return None
+    return None
+
+def write(method, path, data, persona, label=""):
+    if DRY:
+        log(f"DRY {persona}: {method} {path} {label}")
+        return True
+    res = api(method, path, data, persona=persona)
+    with _slock:
+        stats["writes" if res is not None else "fails"] += 1
+    return res
+
+def get_pages(path, max_pages=20):
+    out, page = [], 1
+    sep = "&" if "?" in path else "?"
+    while page <= max_pages:
+        res = api("get", f"{path}{sep}page={page}")
+        batch = res if isinstance(res, list) else []
+        out.extend(batch)
+        if not batch:
+            break
+        page += 1
+    return out
+
+def pick(seq, *keys):
+    h = int(hashlib.md5(":".join(str(k) for k in keys).encode()).hexdigest(), 16)
+    return seq[h % len(seq)]
+
+# ── content pools ────────────────────────────────────────────────────────────
+
+COMMENTS = [
+    "Looks good — I folded this into the weekly summary.",
+    "Can we get a second pair of eyes on this before Friday?",
+    "Done on my end. Handing back to you.",
+    "This overlaps with what the platform folks are doing — worth a sync?",
+    "Bumping this — it came up again in the standup today.",
+    "I took a first pass; notes inline. Nothing blocking.",
+    "Moved the deadline discussion to the thread where it belongs.",
+    "Same issue came up last quarter. The fix we used then still applies.",
+    "Nice. Shipping this cleans up two other items on my list.",
+    "Adding context: customer feedback from last week points the same way.",
+    "I'd hold off until the migration lands, then this gets much easier.",
+    "Split this into two — the second half is genuinely a separate task.",
+    "Confirmed with finance, we're clear to proceed.",
+    "Screenshots attached in the doc — visual diff is subtle but real.",
+    "This is done in spirit; leaving open until the docs are updated.",
+    "Who owns the follow-up here? Happy to take it if nobody claims it.",
+    "Rolled this into the Q3 plan so it stops floating.",
+    "Tested on my machine and on staging — consistent both places.",
+    "Good catch. That would have bitten us during the launch.",
+    "No objections from me. Ship it.",
+]
+BOOST_EMOJI = ["👍", "🎉", "💯", "🔥", "👏", "✅", "🚀", "😂", "❤️", "🙌"]
+MSG_TITLES = [
+    "Kickoff notes", "Status: week of July 20", "Decisions from today's call",
+    "Scope check", "What's shippable this week", "Open questions",
+    "Retro highlights", "Next milestones", "Customer feedback roundup",
+    "Handoff notes",
+]
+MSG_BODY = ("<p>Quick summary so this project has a paper trail: goals are set, "
+            "owners are assigned, and the first milestone is on the calendar. "
+            "Flag anything that looks off in the comments.</p>")
+TODO_TITLES = [
+    "Draft the one-pager", "Review open questions", "Schedule the kickoff call",
+    "Collect baseline metrics", "Update the runbook", "Close the loop with support",
+    "Prep demo environment", "Write up decision log", "File follow-up tickets",
+    "Confirm owner for next milestone",
+]
+
+# ── inventory ────────────────────────────────────────────────────────────────
+
+def inventory():
+    log("inventory: reading account structure (as owner)…")
+    projects = get_pages("projects.json")
+    vol = {p["name"].split(" ")[0]: p for p in projects}
+    targets = []  # (bucket_id, recording_id) commentable owner recordings
+
+    # To-do Mountain todos
+    tm = next(p for p in projects if p["name"].startswith("To-do Mountain"))
+    tsid = next(d["id"] for d in tm["dock"] if d["name"] == "todoset")
+    for lst in get_pages(f"buckets/{tm['id']}/todosets/{tsid}/todolists.json")[:6]:
+        for td in get_pages(f"buckets/{tm['id']}/todolists/{lst['id']}/todos.json", max_pages=2)[:20]:
+            targets.append((tm["id"], td["id"]))
+
+    # Message Mountain messages
+    mm = next(p for p in projects if p["name"].startswith("Message Mountain"))
+    bid = next(d["id"] for d in mm["dock"] if d["name"] == "message_board")
+    for m in get_pages(f"buckets/{mm['id']}/message_boards/{bid}/messages.json")[:50]:
+        targets.append((mm["id"], m["id"]))
+
+    # Document Dump docs
+    dd = next(p for p in projects if p["name"].startswith("Document Dump"))
+    vid = next(d["id"] for d in dd["dock"] if d["name"] == "vault")
+    for doc in get_pages(f"buckets/{dd['id']}/vaults/{vid}/documents.json")[:40]:
+        targets.append((dd["id"], doc["id"]))
+
+    # Card Chaos cards (Inbox column has 60)
+    cc = next(p for p in projects if p["name"].startswith("Card Chaos"))
+    ctid = next(d["id"] for d in cc["dock"] if d["name"] == "kanban_board")
+    table = api("get", f"buckets/{cc['id']}/card_tables/{ctid}.json")
+    col = max(table["lists"], key=lambda c: c.get("cards_count") or 0)
+    for card in get_pages(f"buckets/{cc['id']}/card_tables/lists/{col['id']}/cards.json", max_pages=2)[:40]:
+        targets.append((cc["id"], card["id"]))
+
+    # realistic projects that are still empty get spread content
+    volume_prefixes = ("To-do", "Message", "Document", "Card", "Comment", "Chatterbox",
+                       "Calendar", "Limit", "AAAA", "BBBB", "Z", "مشروع", "プロジェクト",
+                       "🔥", "Project ", "My Project", "Big Account HQ")
+    realistic = [p for p in projects
+                 if not p["name"].startswith(volume_prefixes)]
+    log(f"inventory: {len(targets)} comment targets, {len(realistic)} spread projects")
+    return targets, realistic
+
+# ── steps ────────────────────────────────────────────────────────────────────
+
+def step_comments(targets):
+    n = min(TARGET_COMMENTS, len(targets) * 2)
+    log(f"comments: posting {n}")
+    jobs = []
+    for i in range(n):
+        bucket, rec = targets[i % len(targets)]
+        persona = pick(PERSONAS, "c", i)
+        text = pick(COMMENTS, "ct", i, rec)
+        jobs.append((bucket, rec, persona, text))
+    def go(j):
+        bucket, rec, persona, text = j
+        return write("post", f"buckets/{bucket}/recordings/{rec}/comments.json",
+                     {"content": f"<p>{text}</p>"}, persona)
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        list(ex.map(go, jobs))
+
+def step_boosts(targets):
+    n = min(TARGET_BOOSTS, len(targets) * 2)
+    log(f"boosts: posting {n}")
+    jobs = []
+    for i in range(n):
+        _, rec = targets[(i * 7) % len(targets)]
+        jobs.append((rec, pick(PERSONAS, "b", i), pick(BOOST_EMOJI, "be", i, rec)))
+    def go(j):
+        rec, persona, emoji = j
+        return write("post", f"recordings/{rec}/boosts.json", {"content": emoji}, persona)
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        list(ex.map(go, jobs))
+
+def step_spread(realistic):
+    log(f"spread: seeding persona content in {len(realistic)} projects")
+    counter = [0]
+    def go(p):
+        pid = p["id"]
+        persona = pick(PERSONAS, "s", pid)
+        board = next((d["id"] for d in p["dock"] if d["name"] == "message_board" and d["enabled"]), None)
+        tsid = next((d["id"] for d in p["dock"] if d["name"] == "todoset" and d["enabled"]), None)
+        if board and pid % 2 == 0:
+            write("post", f"buckets/{pid}/message_boards/{board}/messages.json",
+                  {"subject": pick(MSG_TITLES, "mt", pid), "content": MSG_BODY,
+                   "status": "active"}, persona)
+        elif tsid:
+            lst = write("post", f"buckets/{pid}/todosets/{tsid}/todolists.json",
+                        {"name": "Next steps", "description": ""}, persona)
+            if lst:
+                for k in range(2):
+                    counter[0] += 1
+                    assignees = [OWNER_ID] if counter[0] % SPREAD_ASSIGN_OWNER_EVERY == 0 else []
+                    write("post", f"buckets/{pid}/todolists/{lst['id']}/todos.json",
+                          {"content": pick(TODO_TITLES, "tt", pid, k),
+                           "assignee_ids": assignees},
+                          pick(PERSONAS, "st", pid, k))
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        list(ex.map(go, realistic))
+
+def main():
+    only = None
+    if "--only" in sys.argv:
+        only = sys.argv[sys.argv.index("--only") + 1].split(",")
+    targets, realistic = inventory()
+    t0 = time.time()
+    if not only or "comments" in only:
+        step_comments(targets)
+    if not only or "boosts" in only:
+        step_boosts(targets)
+    if not only or "spread" in only:
+        step_spread(realistic)
+    log(f"done in {time.time()-t0:.0f}s — writes={stats['writes']} fails={stats['fails']}")
+
+if __name__ == "__main__":
+    main()
