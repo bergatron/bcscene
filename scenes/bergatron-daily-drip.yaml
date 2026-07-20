@@ -1,0 +1,46 @@
+# Daily activity drip for the Bergatron Big Account (QA fixture, acct 6225104).
+#
+# Purpose: keep the account's timeline/latest-activity surfaces fresh —
+# bc3's timeline batch window is 7 days (timeline/batch.rb MAX_DAYS), so a
+# dormant account stops exercising those paths no matter how big it is.
+# Run a variation of this a few times a week, or ask Claude in this repo to
+# improvise one ("have a few people discuss <topic> in Chatterbox, then
+# post a status update in a Team project").
+#
+# Personas must have access to the target projects (see coworker
+# skills/qa-fixtures — the grants pass adds all personas to all projects).
+
+name: Bergatron daily drip
+description: Light multi-persona activity so timeline surfaces stay warm.
+
+steps:
+  - persona: sandy
+    action: chat-post
+    args:
+      message: "Morning all — reminder that the Q3 planning doc is due for review Friday."
+      project: "47664102"
+
+  - persona: patty
+    action: chat-post
+    args:
+      message: "On it. I'm about halfway through the retention numbers, should have them in by Thursday."
+      project: "47664102"
+
+  - persona: vince
+    action: chat-post
+    args:
+      message: "Same for the infra section. One question — are we including the migration timeline or keeping that separate?"
+      project: "47664102"
+
+  - persona: sandy
+    action: chat-post
+    args:
+      message: "Separate doc, keep this one focused. I'll link them from the summary."
+      project: "47664102"
+
+  - persona: greta
+    action: message-post
+    args:
+      title: "Weekly status — design reviews"
+      body: "Three reviews completed this week. Two carry over: the onboarding flow revisions and the mobile nav spike. Full notes in the review doc."
+      project: "47664102"
