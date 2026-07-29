@@ -11,13 +11,36 @@ the goal is timeline freshness (bc3's 7-day window), not bulk.
 Cron example (Mon/Wed/Fri 10:07):
   7 10 * * 1,3,5 /Users/<you>/Work/basecamp/bcscene/bin/bcscene-drip >> /tmp/bcscene-drip.log 2>&1
 """
-import subprocess, json, sys, os, time, datetime, hashlib
+import subprocess, json, sys, os, re, time, datetime, hashlib
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(REPO, "lib"))
-import yaml
 
-ROSTER = yaml.safe_load(open(os.path.join(REPO, "personas.yaml")))
+def _load_roster(path):
+    """Minimal parser for our flat personas.yaml — no pyyaml dependency,
+    so cron survives interpreter/site-package churn."""
+    roster = {"personas": []}
+    cur = None
+    for raw in open(path):
+        line = raw.split("#", 1)[0].rstrip()
+        if not line.strip():
+            continue
+        m = re.match(r'^(\w+):\s*"?([^"]*)"?\s*$', line)
+        if m and not line.startswith(" "):
+            key, val = m.groups()
+            if val:
+                roster[key] = val
+            continue
+        m = re.match(r'^  - name:\s*(\S+)', line)
+        if m:
+            cur = {"name": m.group(1)}
+            roster["personas"].append(cur)
+            continue
+        m = re.match(r'^    (\w+):\s*"?(.*?)"?\s*$', line)
+        if m and cur is not None:
+            cur[m.group(1)] = m.group(2)
+    return roster
+
+ROSTER = _load_roster(os.path.join(REPO, "personas.yaml"))
 ACCOUNT = str(ROSTER["account_id"])
 PERSONAS = [p["name"] for p in ROSTER["personas"]]
 OWNER_ID = 52549353
